@@ -320,6 +320,8 @@ class Visualizer3D(object):
         smooth : bool
             If true, the mesh is smoothed before rendering.
         """
+        points = np.asarray(points)
+        assert points.ndim == 2 and points.shape[1] == 3, "points must be a (n, 3) shaped array"
         # Generate circular polygon
         vec = np.array([0.0, 1.0]) * tube_radius
         angle = 2 * np.pi / n_components
@@ -329,6 +331,9 @@ class Visualizer3D(object):
             perim.append(vec)
             vec = np.dot(rotmat, vec)
         poly = Polygon(perim)
+        if not poly.is_valid:
+            print("Invalid polygon")
+            return None
 
         # Sweep it along the path
         mesh = trimesh.creation.sweep_polygon(poly, points)
@@ -472,7 +477,7 @@ class Visualizer3D(object):
                     baseColorFactor=np.array([1.0, 1.0, 1.0, 1.0]), metallicFactor=0.2, roughnessFactor=0.8
                 )
 
-        m = Mesh.from_trimesh(mesh, material=material, poses=poses, wireframe=wireframe, smooth=smooth)
+        m = Mesh.from_trimesh(mesh, material=material, poses=np.eye(4), wireframe=wireframe, smooth=smooth)
         return Node(mesh=m, name=name, matrix=pose)
 
     @staticmethod
